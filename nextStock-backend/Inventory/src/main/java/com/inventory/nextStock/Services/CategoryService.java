@@ -20,7 +20,7 @@ public class CategoryService {
     public Category addCategory(Category category){
          return categoryRepository.save(category);
     }
-    public List<Category> getAllCatgories(){
+    public List<Category> getAllCategories(){
          return categoryRepository.findAll();
     }
 }

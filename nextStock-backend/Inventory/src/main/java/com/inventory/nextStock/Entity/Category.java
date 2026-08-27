@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 
 @Entity
 @Table(name="Categories")
@@ -20,6 +20,10 @@ public class Category {
         this.category_id = category_id;
         this.description = description;
         this.category_name = category_name;
+    }
+
+    public Category() {
+
     }
 
     public String getCategory_name() {
