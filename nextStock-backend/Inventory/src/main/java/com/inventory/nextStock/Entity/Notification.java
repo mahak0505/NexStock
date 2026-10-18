@@ -11,6 +11,11 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer notification_id;
 
+
+
+    @Column(name = "is_resolved")
+    private Boolean is_resolved = false;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
@@ -87,6 +92,13 @@ public class Notification {
 
     public void setIs_read(Boolean is_read) {
         this.is_read = is_read;
+    }
+    public Boolean getIs_resolved() {
+        return is_resolved;
+    }
+
+    public void setIs_resolved(Boolean is_resolved) {
+        this.is_resolved = is_resolved;
     }
 
     public LocalDateTime getCreated_at() {

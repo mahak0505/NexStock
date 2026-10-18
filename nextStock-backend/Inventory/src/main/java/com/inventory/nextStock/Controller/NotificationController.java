@@ -1,6 +1,7 @@
 package com.inventory.nextStock.Controller;
 
 import com.inventory.nextStock.Entity.Notification;
+import com.inventory.nextStock.Repository.NotificationRepository;
 import com.inventory.nextStock.Services.NotificationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +12,11 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService, NotificationRepository notificationRepository) {
         this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
     }
 
     @PostMapping
@@ -35,4 +38,10 @@ public class NotificationController {
 
         return notificationService.updateNotification(id, notification);
     }
+
+    @PutMapping("/{id}/read")
+    public Notification markAsRead(@PathVariable Integer id){
+       return notificationService.markAsRead(id);
+    }
+
 }

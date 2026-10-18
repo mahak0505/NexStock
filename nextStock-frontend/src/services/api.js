@@ -35,6 +35,12 @@ export const purchaseOrderItemApi = crud("purchase-order-items");
 export const saleApi = crud("sales");
 export const saleItemApi = crud("sale-items");
 export const stockTransactionApi = crud("stock-transactions");
-export const notificationApi = crud("notifications");
+export const notificationApi = {
+  ...crud("notifications"),
+
+  markAsRead: (id) =>
+    api.put(`/notifications/${id}/read`)
+       .then((res) => res.data),
+};
 
 export default api;

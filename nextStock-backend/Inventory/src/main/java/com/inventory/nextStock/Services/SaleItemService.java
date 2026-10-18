@@ -57,15 +57,30 @@ public class SaleItemService {
 
         inventoryRepository.save(inventory);
         if (inventory.getQuantity() <= product.getMinimum_stock()) {
+            List<Notification> activeNotifications=
+                    notificationRepository.findActiveLowStockNotifications(product.getProduct_id());
+            Notification notification;
+            if(!activeNotifications.isEmpty()){
+                notification=activeNotifications.get(0);
+               for(int i=1;i< activeNotifications.size();i++){
+                   Notification duplicate=activeNotifications.get(i);
+                   duplicate.setIs_resolved(true);
+                   notificationRepository.save(duplicate);
 
-            Notification notification = new Notification();
+               }
+            }
+          else{
+               notification=new Notification();
+               notification.setProduct(product);
+               notification.setNotification_type("LOW_STOCk");
+               notification.setIs_read(false);
+               notification.setIs_resolved(false);
 
-            notification.setProduct(product);
-            notification.setNotification_type("LOW_STOCK");
+           }
             notification.setMessage(
-                    product.getProduct_name() +
-                            " stock is low. Remaining quantity: " +
-                            inventory.getQuantity()
+                    product.getProduct_name()
+                            + " stock is low. Remaining quantity: "
+                            + inventory.getQuantity()
             );
 
             notificationRepository.save(notification);

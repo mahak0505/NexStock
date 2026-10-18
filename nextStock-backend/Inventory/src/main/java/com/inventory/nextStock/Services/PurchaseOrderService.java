@@ -1,10 +1,7 @@
 package com.inventory.nextStock.Services;
 
 import com.inventory.nextStock.Entity.*;
-import com.inventory.nextStock.Repository.InventoryRepository;
-import com.inventory.nextStock.Repository.PurchaseOrderItemRepository;
-import com.inventory.nextStock.Repository.PurchaseOrderRepository;
-import com.inventory.nextStock.Repository.StockTransactionRepository;
+import com.inventory.nextStock.Repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +14,14 @@ public class PurchaseOrderService {
     private final PurchaseOrderItemRepository purchaseOrderItemRepository;
     private final InventoryRepository inventoryRepository;
     private final StockTransactionRepository stockTransactionRepository;
+    private  final NotificationRepository notificationRepository;
 
-    public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository, PurchaseOrderItemRepository purchaseOrderItemRepository, InventoryRepository inventoryRepository, StockTransactionRepository stockTransactionRepository) {
+    public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository, PurchaseOrderItemRepository purchaseOrderItemRepository, InventoryRepository inventoryRepository, StockTransactionRepository stockTransactionRepository, NotificationRepository notificationRepository) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.purchaseOrderItemRepository = purchaseOrderItemRepository;
         this.inventoryRepository = inventoryRepository;
         this.stockTransactionRepository = stockTransactionRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public PurchaseOrder addPurchaseOrder(PurchaseOrder purchaseOrder) {
@@ -73,15 +72,37 @@ public class PurchaseOrderService {
             Product product = item.getProduct();
             Inventory inventory = inventoryRepository
                     .findByProductId(product.getProduct_id())
-                    .orElseThrow(() ->
-                            new RuntimeException("Inventory not found"));
+                    .orElseGet(()->{
+                        Inventory newInventory= new Inventory();
+                        newInventory.setProduct(item.getProduct());
+                        newInventory.setQuantity(0);
+                        return newInventory;
+                            });
 
             // 5. Increase inventory
+            int currentQuantity = inventory.getQuantity() == null
+                    ? 0
+                    : inventory.getQuantity();
+
             inventory.setQuantity(
-                    inventory.getQuantity() + item.getQuantity()
+                    currentQuantity + item.getQuantity()
             );
 
             inventoryRepository.save(inventory);
+
+
+            if (inventory.getQuantity() > product.getMinimum_stock()) {
+
+                List<Notification> activeNotifications =
+                        notificationRepository.findActiveLowStockNotifications(
+                                product.getProduct_id()
+                        );
+
+                for (Notification notification : activeNotifications) {
+                    notification.setIs_resolved(true);
+                    notificationRepository.save(notification);
+                }
+            }
 
             // 6. Record why stock increased
             StockTransaction transaction = new StockTransaction();

@@ -30,10 +30,7 @@ export default function Notifications() {
     setUpdatingId(notification.notification_id);
     setError(null);
     try {
-      await notificationApi.update(notification.notification_id, {
-        ...notification,
-        is_read: true,
-      });
+      await notificationApi.markAsRead(notification.notification_id);
       await loadNotifications();
     } catch (err) {
       setError("Failed to update notification.");
@@ -43,7 +40,9 @@ export default function Notifications() {
     }
   }
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = notifications.filter(
+  (n) => !n.is_read && !n.is_resolved
+).length;
 
   return (
     <div className="admin-page">
@@ -68,6 +67,7 @@ export default function Notifications() {
               <th>Type</th>
               <th>Message</th>
               <th>Created</th>
+              <th>Status</th>
               <th></th>
             </tr>
           </thead>
@@ -86,6 +86,18 @@ export default function Notifications() {
                   <td>{n.notification_type}</td>
                   <td>{n.message}</td>
                   <td>{n.created_at ?? "—"}</td>
+                  
+                 <td>
+                   <span
+                     style={{
+                     color: n.is_resolved ? "green" : "#c45a35",
+                     fontWeight: 600,
+                    }}
+                  >
+                   {n.is_resolved ? "Resolved" : "Active"}
+                 </span>
+                </td>
+
                   <td>
                     {!n.is_read && (
                       <button

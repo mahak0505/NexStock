@@ -40,4 +40,11 @@ public class NotificationService {
 
         return notificationRepository.save(notification);
     }
+
+    public Notification markAsRead(Integer id){
+        Notification notification=notificationRepository.findById(id).orElseThrow(()->
+                new RuntimeException("Notification not found"));
+        notification.setIs_read(true);
+        return notificationRepository.save(notification);
+    }
 }
