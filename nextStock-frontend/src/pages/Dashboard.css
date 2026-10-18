@@ -1,0 +1,29 @@
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+}
+
+.stat-card {
+  background: var(--cream);
+  padding: 32px 28px;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.stat-value[data-accent] {
+  color: var(--terracotta);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}

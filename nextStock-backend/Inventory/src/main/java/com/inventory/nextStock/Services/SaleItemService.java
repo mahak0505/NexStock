@@ -15,13 +15,15 @@ public class SaleItemService {
     private final InventoryRepository inventoryRepository;
     private final StockTransactionRepository stockTransactionRepository;
     private final NotificationRepository notificationRepository;
+    private final SaleRepository saleRepository;
 
-    public SaleItemService(SaleItemRepository saleItemRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, StockTransactionRepository stockTransactionRepository, NotificationRepository notificationRepository) {
+    public SaleItemService(SaleItemRepository saleItemRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, StockTransactionRepository stockTransactionRepository, NotificationRepository notificationRepository, SaleRepository saleRepository) {
         this.saleItemRepository = saleItemRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.stockTransactionRepository = stockTransactionRepository;
         this.notificationRepository = notificationRepository;
+        this.saleRepository = saleRepository;
     }
 
     @Transactional
@@ -47,6 +49,12 @@ public class SaleItemService {
                 inventory.getQuantity() - saleItem.getQuantity()
         );
 
+        //get sale
+        Sale sale=saleRepository.findById(
+                saleItem.getSale().getSale_id()
+        ).orElseThrow(() -> new RuntimeException("sale not found"));
+        saleItem.setSale(sale);
+
         inventoryRepository.save(inventory);
         if (inventory.getQuantity() <= product.getMinimum_stock()) {
 
@@ -69,10 +77,16 @@ public class SaleItemService {
         StockTransaction transaction = new StockTransaction();
 
         transaction.setProduct(product);  // product is available here
-        transaction.setUser(saleItem.getSale().getUser());
+        transaction.setUser(sale.getUser());
         transaction.setTransaction_type(TransactionType.SALE);
         transaction.setQuantity(saleItem.getQuantity());
         transaction.setRemarks("Stock reduced due to sale");
+
+        System.out.println("Sale User ID: " + sale.getUser().getUser_id());
+        System.out.println("Transaction User ID: " +
+                (transaction.getUser() == null
+                        ? "NULL"
+                        : transaction.getUser().getUser_id()));
 
         stockTransactionRepository.save(transaction);
 
