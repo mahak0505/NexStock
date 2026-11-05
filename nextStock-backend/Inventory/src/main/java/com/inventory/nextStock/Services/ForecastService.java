@@ -27,17 +27,24 @@ public class ForecastService {
 
         for(Object[] row:sales){
             LocalDate date;
+            if (row[0] instanceof java.sql.Date sqlDate) {
+                date = sqlDate.toLocalDate();
 
-            if(row[0] instanceof java.sql.Date sqlDate){
-                date=sqlDate.toLocalDate();
             } else if (row[0] instanceof LocalDate localDate) {
+                date = localDate;
 
-                date=localDate;
-            }else{
-                date=((java.util.Date) row[0]).
-                        toInstant().
-                        atZone(ZoneId.systemDefault()).
-                        toLocalDate();
+            } else if (row[0] instanceof java.sql.Timestamp timestamp) {
+                date = timestamp.toLocalDateTime().toLocalDate();
+
+            } else if (row[0] instanceof java.util.Date utilDate) {
+                date = utilDate.toInstant()
+                        .atZone(ZoneId.of("Asia/Kolkata"))
+                        .toLocalDate();
+
+            } else {
+                throw new IllegalStateException(
+                        "Unsupported date type: " + row[0].getClass()
+                );
             }
             long quantity=((Number)row[1]).longValue();
             dailySales.put(date,quantity);
