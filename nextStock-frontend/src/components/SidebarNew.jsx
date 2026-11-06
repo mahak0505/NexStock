@@ -3,6 +3,7 @@ import "./Sidebar.css";
 
 const links = [
   { to: "/", label: "Dashboard", end: true },
+   { to: "/analytics", label: "Analytics" },
   { to: "/products", label: "Products" },
   { to: "/categories", label: "Categories" },
   { to: "/inventory", label: "Inventory" },

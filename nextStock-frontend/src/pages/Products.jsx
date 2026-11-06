@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { productApi, categoryApi, supplierApi } from "../services/api";
+import {
+  productApi,
+  categoryApi,
+  supplierApi,
+  inventoryApi
+} from "../services/api";
 import "../styles/admin-page.css";
 
 const emptyForm = {
@@ -25,6 +30,11 @@ export default function Products() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [stockFilter, setStockFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
     loadAll();
@@ -34,14 +44,18 @@ export default function Products() {
     setLoading(true);
     setError(null);
     try {
-      const [productsData, categoriesData, suppliersData] = await Promise.all([
-        productApi.getAll(),
-        categoryApi.getAll(),
-        supplierApi.getAll(),
-      ]);
-      setProducts(productsData);
-      setCategories(categoriesData);
-      setSuppliers(suppliersData);
+       const [productsData, categoriesData, suppliersData, inventoryData] =
+  await Promise.all([
+    productApi.getAll(),
+    categoryApi.getAll(),
+    supplierApi.getAll(),
+    inventoryApi.getAll(),
+  ]);
+
+setProducts(productsData);
+setCategories(categoriesData);
+setSuppliers(suppliersData);
+setInventory(inventoryData);
     } catch (err) {
       setError("Failed to load products. Is the backend running?");
       console.error(err);
@@ -109,6 +123,53 @@ export default function Products() {
       setSaving(false);
     }
   }
+   const getStock = (productId) => {
+  const item = inventory.find(
+    (i) => i.product?.product_id === productId
+  );
+  return item ? item.quantity : 0;
+};
+
+const filteredProducts = products
+  .filter((p) => {
+    const stock = getStock(p.product_id);
+
+    const matchesSearch =
+      p.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      !categoryFilter ||
+      String(p.category?.category_id) === categoryFilter;
+
+    const matchesStock =
+      stockFilter === "all" ||
+      (stockFilter === "low" && stock <= p.minimum_stock) ||
+      (stockFilter === "available" && stock > p.minimum_stock);
+
+    return matchesSearch && matchesCategory && matchesStock;
+  })
+  .sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.selling_price - b.selling_price;
+      case "price-high":
+        return b.selling_price - a.selling_price;
+      case "stock":
+        return getStock(a.product_id) - getStock(b.product_id);
+      default:
+        return a.product_name.localeCompare(b.product_name);
+    }
+  });
+  function getStockStatus(product) {
+  const stock = getStock(product.product_id);
+
+  if (stock === 0) return "out-of-stock";
+  if (stock <= product.minimum_stock) return "low-stock";
+
+  return "in-stock";
+}
 
   return (
     <div className="admin-page">
@@ -125,6 +186,47 @@ export default function Products() {
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+      {!loading && (
+  <div className="product-controls">
+    <input
+      type="text"
+      placeholder="Search by product name, SKU or barcode..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+
+    <select
+      value={categoryFilter}
+      onChange={(e) => setCategoryFilter(e.target.value)}
+    >
+      <option value="">All Categories</option>
+      {categories.map((c) => (
+        <option key={c.category_id} value={c.category_id}>
+          {c.category_name}
+        </option>
+      ))}
+    </select>
+
+    <select
+      value={stockFilter}
+      onChange={(e) => setStockFilter(e.target.value)}
+    >
+      <option value="all">All Stock</option>
+      <option value="low">Low Stock</option>
+      <option value="available">Available Stock</option>
+    </select>
+
+    <select
+      value={sortBy}
+      onChange={(e) => setSortBy(e.target.value)}
+    >
+      <option value="name">Name: A–Z</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+      <option value="stock">Stock: Low to High</option>
+    </select>
+  </div>
+)}
 
       {loading ? (
         <p>Loading products...</p>
@@ -139,17 +241,20 @@ export default function Products() {
               <th>Cost Price</th>
               <th>Selling Price</th>
               <th>Min. Stock</th>
+              <th>Stock Status</th>
+              <th>Current Stock</th>
               <th>Expiry</th>
+
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan={9}>No products yet — add your first one.</td>
               </tr>
             ) : (
-              products.map((p) => (
+               filteredProducts.map((p) => (
                 <tr key={p.product_id}>
                   <td className="row-title">{p.product_name}</td>
                   <td>{p.sku}</td>
@@ -158,6 +263,16 @@ export default function Products() {
                   <td>{p.cost_price}</td>
                   <td>{p.selling_price}</td>
                   <td>{p.minimum_stock}</td>
+                  <td>{getStock(p.product_id)}</td>
+                  <td>
+  <span className={`stock-badge ${getStockStatus(p)}`}>
+    {getStockStatus(p) === "out-of-stock"
+      ? "Out of Stock"
+      : getStockStatus(p) === "low-stock"
+      ? "Low Stock"
+      : "In Stock"}
+  </span>
+</td>
                   <td>{p.expiry_date ?? "—"}</td>
                   <td>
                     <button className="edit-link" onClick={() => openEditForm(p)}>

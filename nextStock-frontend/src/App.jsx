@@ -15,6 +15,7 @@ import Suppliers from "./pages/Suppliers.jsx";
 import Purchases from "./pages/PurchasesNew.jsx";
 import Sales from "./pages/Sales.jsx";
 import Notifications from "./pages/Notifications.jsx";
+import Analytics from "./pages/Analytics.jsx";
 export default function App() {
   return (
     <div className="app">
@@ -28,6 +29,7 @@ export default function App() {
         <div className="app-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/products" element={<Products />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/suppliers" element={<Suppliers />} />

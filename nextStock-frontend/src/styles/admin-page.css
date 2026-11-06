@@ -222,3 +222,51 @@
   opacity: 0.6;
   cursor: default;
 }
+.product-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.product-controls input {
+  flex: 2;
+  min-width: 220px;
+}
+
+.product-controls select {
+  flex: 1;
+  min-width: 150px;
+}
+
+.product-controls input,
+.product-controls select {
+  padding: 11px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+}
+.stock-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stock-badge.in-stock {
+  background: #e2f3e8;
+  color: #267342;
+}
+
+.stock-badge.low-stock {
+  background: #fff0d5;
+  color: #a56600;
+}
+
+.stock-badge.out-of-stock {
+  background: #fde2e2;
+  color: #b42318;
+}

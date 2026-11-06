@@ -44,3 +44,25 @@ export const notificationApi = {
 };
 
 export default api;
+
+export const analyticsApi = {
+  getTotalRevenue: () =>
+    api.get("/analytics/total-revenue").then((res) => res.data),
+
+  getBestSellingProducts: () =>
+    api.get("/analytics/best-selling-products").then((res) => res.data),
+
+  getDailySales: () =>
+    api.get("/analytics/daily-sales").then((res) => res.data),
+
+  getProductDailySales: (productId) =>
+    api.get(`/analytics/daily-sales/${productId}`).then((res) => res.data),
+
+  getForecast: (productId, days = 7) =>
+    api.get(`/forecast/${productId}?days=${days}`).then((res) => res.data),
+
+  getRestockSuggestion: (productId, forecastDays = 7, planningDays = 7) =>
+    api.get(
+      `/restock/${productId}?forecastDays=${forecastDays}&planningDays=${planningDays}`
+    ).then((res) => res.data),
+};
